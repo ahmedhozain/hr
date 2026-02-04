@@ -1,0 +1,40 @@
+{% extends "layout.html" %}
+{% block title %}تسجيل الدخول{% endblock %}
+{% block content %}
+<div class="fb-auth">
+  <div class="fb-left">
+    <img src="{{ url_for('static', filename='logo.svg') }}" class="fb-logo" alt="HR Tech">
+    <h1 class="fb-brand">HR Tech</h1>
+    <p class="fb-sub">يساعدك النظام على إدارة ملفاتك ومشاركتها بأمان وسهولة.</p>
+  </div>
+  <div class="fb-right">
+    <div class="fb-card">
+      <form method="post" action="{{ url_for('login') }}" class="fb-form">
+        <div class="auth-box">
+          <div class="mb-3">
+            <input name="email" id="email" type="email" class="form-control" placeholder="البريد الإلكتروني" required>
+          </div>
+          <div class="mb-3 position-relative">
+            <input name="password" id="password" type="password" class="form-control pe-5" placeholder="كلمة المرور" required>
+            <button type="button" class="btn btn-outline-secondary btn-sm password-toggle position-absolute top-50 end-0 translate-middle-y me-2">إظهار</button>
+          </div>
+          <button type="submit" class="btn btn-fb w-100">تسجيل الدخول</button>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mt-2">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="remember" name="remember">
+            <label class="form-check-label" for="remember">تذكرني</label>
+          </div>
+        </div>
+      </form>
+      <div class="text-center mt-3">
+        <button type="button" class="btn btn-create" id="showSupportNotice">إنشاء حساب جديد</button>
+      </div>
+      <div id="supportNotice" class="alert alert-info small mt-2 d-none text-center" role="alert">
+        <span>يرجى التواصل مع الرقم التالي لإنشاء حساب جديد أو تغيير كلمة المرور: <strong>01114104808</strong></span>
+      </div>
+    </div>
+    <p class="fb-small text-center mt-3">للاستخدام المؤسسي فقط</p>
+  </div>
+</div>
+{% endblock %}
