@@ -1,0 +1,55 @@
+{% extends "layout.html" %}
+{% block title %}لوحة المشرف{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3"><h5 class="mb-0">لوحة المشرف</h5><span class="text-muted">عرض العملاء والملفات</span></div>
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-secondary text-white">العملاء الذين لديهم ملفات</div>
+  <div class="card-body">
+    {% if clients_info %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead><tr><th>العميل</th><th>البريد</th><th>عدد الملفات</th><th>آخر رفع</th><th>إجراءات</th></tr></thead>
+          <tbody>
+            {% for ci in clients_info %}
+            <tr>
+              <td><a href="{{ url_for('client_docs', user_id=ci.id) }}">{{ ci.name }}</a></td>
+              <td class="text-muted">{{ ci.email }}</td>
+              <td><span class="badge bg-info">{{ ci.file_count }}</span></td>
+              <td>{{ ci.last_upload|localtime }}</td>
+              <td><a class="btn btn-sm btn-outline-primary" href="{{ url_for('client_docs', user_id=ci.id) }}">فتح</a></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="text-muted">لا يوجد عملاء لديهم ملفات حالياً.</div>
+    {% endif %}
+  </div>
+</div>
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-secondary text-white">آخر 10 ملفات مرفوعة</div>
+  <div class="card-body">
+    {% if latest_docs %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead><tr><th>الملف</th><th>النوع</th><th>العميل</th><th>الحالة</th><th>تاريخ الرفع</th></tr></thead>
+          <tbody>
+            {% for d in latest_docs %}
+            <tr>
+              <td>{{ d.filename }}</td>
+              <td class="text-muted">{{ doc_type_labels.get(d.doc_type, '—') }}</td>
+              <td class="text-muted">{{ users_by_id.get(d.user_id, 'Unknown') }}</td>
+              <td><span class="badge badge-status {{ d.status }}">{% if d.status=='approved' %}مقبول{% elif d.status=='rejected' %}مرفوض{% else %}قيد المراجعة{% endif %}</span></td>
+              <td>{{ d.created_at|localtime }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="text-muted">لا توجد ملفات مرفوعة مؤخراً.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,85 @@
+{% extends "layout.html" %}
+{% block title %}لوحة العميل{% endblock %}
+{% block content %}
+<div class="client-hero card shadow-sm mb-4">
+  <div class="card-body">
+    <div class="d-flex align-items-center mb-2"><img src="{{ url_for('static', filename='logo.svg') }}" class="site-logo me-2" alt="HR Tech"><h5 class="hero-title mb-0">لوحة العميل</h5></div>
+    <p class="hero-sub mb-0">قم برفع المستندات المطلوبة. يمكنك معاينة الملف قبل التحميل ومتابعة حالة المراجعة.</p>
+  </div>
+</div>
+<div class="doc-strip card mb-3">
+  <div class="card-body p-2">
+    <div class="d-flex flex-wrap gap-2">
+      {% for doc in required_docs %}
+        {% set d = docs_by_type.get(doc.key) %}
+        <button type="button" class="doc-chip" data-target="doc-{{ doc.key }}">
+          <span class="chip-label">{{ doc.label }}</span>
+          <span class="chip-status {% if d %}{{ d.status }}{% else %}pending{% endif %}">
+            {% if d %}
+              {% if d.status=='approved' %}مقبول{% elif d.status=='rejected' %}مرفوض{% else %}قيد المراجعة{% endif %}
+            {% else %}غير مرفوع{% endif %}
+          </span>
+        </button>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+<div class="doc-grid">
+  {% for doc in required_docs %}
+    {% set d = docs_by_type.get(doc.key) %}
+    <div class="doc-card" id="doc-{{ doc.key }}">
+      <div class="doc-card-header">
+        <span class="doc-card-title">{{ doc.label }}</span>
+        <span class="badge badge-status {% if d %}{{ d.status }}{% else %}pending{% endif %}">
+          {% if d %}
+            {% if d.status=='approved' %}مقبول{% elif d.status=='rejected' %}مرفوض{% else %}قيد المراجعة{% endif %}
+          {% else %}
+            غير مرفوع
+          {% endif %}
+        </span>
+      </div>
+      <div class="doc-card-body">
+        <div class="doc-meta">
+          <div class="meta-item"><span class="meta-label">تاريخ الرفع:</span><span class="meta-value">{% if d %}{{ d.created_at|localtime }}{% else %}—{% endif %}</span></div>
+          <div class="meta-item"><span class="meta-label">وقت القرار:</span><span class="meta-value">{% if d %}{{ d.reviewed_at|localtime }}{% else %}—{% endif %}</span></div>
+          <div class="meta-item"><span class="meta-label">سبب الرفض:</span><span class="meta-value">{% if d and d.status=='rejected' %}{{ d.reason or '—' }}{% else %}—{% endif %}</span></div>
+        </div>
+        <div class="doc-actions">
+          {% if d %}
+            <button type="button" class="btn btn-sm btn-outline-primary btn-preview" data-bs-toggle="modal" data-bs-target="#previewModal" data-src="{{ url_for('preview_file', name=d.filename) }}">عرض</button>
+            <a href="{{ url_for('files', name=d.filename) }}" class="btn btn-sm btn-primary">تحميل</a>
+          {% endif %}
+        </div>
+        {% if d and d.status == 'rejected' %}
+          <form action="{{ url_for('client_replace', id=d.id) }}" method="post" enctype="multipart/form-data" class="replace-form mt-2">
+            <input type="hidden" name="next" value="{{ request.path }}">
+            <input type="file" name="file" class="form-control form-control-sm" required accept=".pdf,image/*">
+            <button class="btn btn-sm btn-warning mt-2">إعادة رفع</button>
+          </form>
+        {% elif not d %}
+          <form method="post" enctype="multipart/form-data" class="upload-zone mt-2">
+            <input type="hidden" name="next" value="{{ request.path }}">
+            <input type="hidden" name="doc_type" value="{{ doc.key }}">
+            <input type="file" name="file" class="form-control" required accept=".pdf,image/*">
+            <button class="btn btn-primary">رفع</button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+  {% endfor %}
+</div>
+<div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">معاينة الملف</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-0">
+        <iframe id="filePreview" class="w-100 modal-iframe" src="" frameborder="0"></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

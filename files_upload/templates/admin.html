@@ -1,0 +1,74 @@
+{% extends "layout.html" %}
+{% block title %}لوحة المدير{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3"><h5 class="mb-0">لوحة المدير</h5><span class="text-muted">إدارة ملفات العملاء والمستخدمين</span></div>
+{% if current_user.role == 'admin' %}
+<div class="mb-4 d-flex justify-content-end">
+  <a class="btn btn-outline-primary" href="{{ url_for('admin_manage') }}">واجهة الإدارة</a>
+</div>
+{% endif %}
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-secondary text-white">العملاء الذين لديهم ملفات</div>
+  <div class="card-body">
+    {% if clients_info %}
+      <div class="table-toolbar d-flex align-items-center justify-content-between mb-2">
+        <div class="input-group input-group-sm" style="max-width:280px">
+          <span class="input-group-text">بحث</span>
+          <input type="text" class="form-control table-search" placeholder="ابحث في الجدول..." data-target="#clientsTable">
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table id="clientsTable" class="table table-hover align-middle admin-table">
+          <thead><tr><th>العميل</th><th>البريد</th><th>عدد الملفات</th><th>آخر رفع</th><th>إجراءات</th></tr></thead>
+          <tbody>
+            {% for ci in clients_info %}
+            <tr>
+              <td><a href="{{ url_for('client_docs', user_id=ci.id) }}">{{ ci.name }}</a></td>
+              <td class="text-muted">{{ ci.email }}</td>
+              <td><span class="badge bg-info">{{ ci.file_count }}</span></td>
+              <td>{{ ci.last_upload|localtime }}</td>
+              <td><a class="btn btn-sm btn-outline-primary" href="{{ url_for('client_docs', user_id=ci.id) }}">فتح</a></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="text-muted">لا يوجد عملاء لديهم ملفات حالياً.</div>
+    {% endif %}
+  </div>
+</div>
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-secondary text-white">آخر 10 ملفات مرفوعة</div>
+  <div class="card-body">
+    {% if latest_docs %}
+      <div class="table-toolbar d-flex align-items-center justify-content-between mb-2">
+        <div class="input-group input-group-sm" style="max-width:280px">
+          <span class="input-group-text">بحث</span>
+          <input type="text" class="form-control table-search" placeholder="ابحث في الجدول..." data-target="#latestDocsTable">
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table id="latestDocsTable" class="table table-hover align-middle admin-table">
+          <thead><tr><th>الملف</th><th>النوع</th><th>العميل</th><th>الحالة</th><th>تاريخ الرفع</th><th>إجراءات</th></tr></thead>
+          <tbody>
+            {% for d in latest_docs %}
+            <tr>
+              <td><a class="filename" href="{{ url_for('files', name=d.filename) }}">{{ d.filename }}</a></td>
+              <td class="text-muted">{{ doc_type_labels.get(d.doc_type, '—') }}</td>
+              <td class="text-muted">{{ users_by_id.get(d.user_id, 'Unknown') }}</td>
+              <td><span class="badge badge-status {{ d.status }}">{% if d.status=='approved' %}مقبول{% elif d.status=='rejected' %}مرفوض{% else %}قيد المراجعة{% endif %}</span></td>
+              <td>{{ d.created_at|localtime }}</td>
+              <td class="d-flex gap-2"><button type="button" class="btn btn-sm btn-outline-secondary btn-preview" data-bs-toggle="modal" data-bs-target="#>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="text-muted">لا توجد ملفات مرفوعة مؤخراً.</div>
+    {% endif %}
+  </div>
+</div>
+<div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered modal-xl"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">معاينة الملف</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body p-0"><iframe id="filePreview" class="w-100 modal-iframe" src="" frameborder="0"></iframe></div></div></div></div>
+<div class="modal fade" id="rejectModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">سبب الرفض</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body"><form id="rejectForm" method="post" action=""><div class="mb-3"><label for="rejectReason" class="form-label">اكتب سبب الرفض</label><textarea id="rejectReason" name="reason" class="form-control" rows="4" placeholder="مثال: المستند غير واضح أو ناقص"></textarea></div><input type="hidden" name="next" value="{{ request.path }}"><div class="d-flex justify-content-end gap-2"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button><button type="submit" class="btn btn-danger">تأكيد الرفض</button></div></form></div></div></div></div>
+{% endblock %}
